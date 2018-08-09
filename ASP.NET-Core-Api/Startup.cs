@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace ASP.NET_Core_Api
 {
@@ -26,6 +27,18 @@ namespace ASP.NET_Core_Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info
+                {
+                    Version = "v1",
+                    Title = "Example - My First API",
+                    Description = "My First ASP.NET Core 2.1 Web API",
+                    TermsOfService = "None",
+                    Contact = new Contact() { Name = "jorgemht", Email = "#", Url = "#" }
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,6 +52,12 @@ namespace ASP.NET_Core_Api
             {
                 app.UseHsts();
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
 
             app.UseHttpsRedirection();
             app.UseMvc();
