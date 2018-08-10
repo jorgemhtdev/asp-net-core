@@ -1,32 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.Swagger;
-
-namespace ASP.NET_Core_Api
+﻿namespace ASP.NET_Core_Api
 {
+    using System;
+    using System.Text;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.IdentityModel.Tokens;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Newtonsoft.Json;
+    using Domain;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Swashbuckle.AspNetCore.Swagger;
+
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
         public IConfiguration Configuration { get; }
+
+        public Startup(IConfiguration configuration) => Configuration = configuration;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            //services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("netCore")); 
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddIdentity<ApplicationUser, IdentityRole>(options => IdentityOptions(options))
+                .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options => options.TokenValidationParameters = TokenValidationParameters());
+
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1).AddJsonOptions(ConfigureJson);
 
             services.AddSwaggerGen(c =>
             {
@@ -53,6 +62,8 @@ namespace ASP.NET_Core_Api
                 app.UseHsts();
             }
 
+            app.UseAuthentication();
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -62,5 +73,36 @@ namespace ASP.NET_Core_Api
             app.UseHttpsRedirection();
             app.UseMvc();
         }
+
+        private void ConfigureJson(MvcJsonOptions obj) => obj.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
+        private TokenValidationParameters TokenValidationParameters()
+        {
+            return new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = "yourdomain.com",
+                ValidAudience = "yourdomain.com",
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Key_Secret"])),
+                ClockSkew = TimeSpan.Zero
+            };
+        }
+
+        private IdentityOptions IdentityOptions(IdentityOptions obj)
+        {
+            // Password settings
+            obj.Password.RequireDigit = false;
+            obj.Password.RequiredLength = 6;
+            obj.Password.RequiredUniqueChars = 0;
+            obj.Password.RequireLowercase = false;
+            obj.Password.RequireNonAlphanumeric = false;
+            obj.Password.RequireUppercase = false;
+
+            return obj;
+        }
+
     }
 }
