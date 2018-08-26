@@ -30,9 +30,12 @@
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContextBackend>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContextBackend>()
-                .AddDefaultTokenProviders();
+
+            services.AddDbContext<ApplicationDbContextBackend>(options => 
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddIdentity<ApplicationUser, IdentityRole>(options => IdentityOptions(options))
+                .AddEntityFrameworkStores<ApplicationDbContextBackend>().AddDefaultTokenProviders();
+
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -64,6 +67,19 @@
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+        }
+
+        private IdentityOptions IdentityOptions(IdentityOptions obj)
+        {
+            // Password settings
+            obj.Password.RequireDigit = false;
+            obj.Password.RequiredLength = 6;
+            obj.Password.RequiredUniqueChars = 0;
+            obj.Password.RequireLowercase = false;
+            obj.Password.RequireNonAlphanumeric = false;
+            obj.Password.RequireUppercase = false;
+
+            return obj;
         }
     }
 }

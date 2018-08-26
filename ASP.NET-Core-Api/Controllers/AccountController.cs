@@ -73,15 +73,15 @@ namespace ASP.NET_Core_Api.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Key_Secret"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var expiration = DateTime.UtcNow.AddDays(1);
 
             var token = new JwtSecurityToken(
-                issuer: "yourdomain.com",
-                audience: "yourdomain.com",
+                issuer: configuration["Jwt:Issuer"],
+                audience: configuration["Jwt:Issuer"],
                 claims: claims,
                 expires: expiration,
                 signingCredentials: creds);

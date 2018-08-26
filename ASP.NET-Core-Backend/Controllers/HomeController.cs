@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using ASP.NET_Core_Backend.Models;
-
-namespace ASP.NET_Core_Backend.Controllers
+﻿namespace ASP.NET_Core_Backend.Controllers
 {
+    using Models;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Diagnostics;
+
     public class HomeController : Controller
     {
         public IActionResult Index()

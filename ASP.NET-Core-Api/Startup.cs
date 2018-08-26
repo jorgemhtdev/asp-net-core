@@ -84,8 +84,8 @@
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = "yourdomain.com",
-                ValidAudience = "yourdomain.com",
+                ValidIssuer = Configuration["Jwt:Issuer"],
+                ValidAudience = Configuration["Jwt:Issuer"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Key_Secret"])),
                 ClockSkew = TimeSpan.Zero
             };

@@ -9,6 +9,8 @@
 
         public string Name { get; set; }
 
+        public bool Active { get; set; }
+
         [ForeignKey("Teacher")]
         public int TeacherId { get; set; }
 
