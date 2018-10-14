@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-namespace AspNetCore.Api
+﻿namespace AspNetCore.Api
 {
+    using Domain;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -22,13 +18,15 @@ namespace AspNetCore.Api
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<MainDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddIdentity<ApplicationUser, IdentityRole>(options => IdentityOptions(options))
+                .AddEntityFrameworkStores<MainDbContext>().AddDefaultTokenProviders();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
@@ -42,6 +40,18 @@ namespace AspNetCore.Api
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+
+        private IdentityOptions IdentityOptions(IdentityOptions obj)
+        {
+            obj.Password.RequireDigit = false;
+            obj.Password.RequiredLength = 6;
+            obj.Password.RequiredUniqueChars = 0;
+            obj.Password.RequireLowercase = false;
+            obj.Password.RequireNonAlphanumeric = false;
+            obj.Password.RequireUppercase = false;
+
+            return obj;
         }
     }
 }
