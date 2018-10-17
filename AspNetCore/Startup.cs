@@ -9,6 +9,7 @@
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Serilog;
 
     public class Startup
     {
@@ -32,6 +33,17 @@
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<ApplicationUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddSingleton<ILogger>(options =>
+            {
+                var connString = Configuration["Serilog:DefaultConnection"];
+                var tableName = Configuration["Serilog:TableName"];
+
+                return new LoggerConfiguration()
+                    .WriteTo.MSSqlServer(connString, tableName, Serilog.Events.LogEventLevel.Warning, autoCreateSqlTable: true)
+                    .CreateLogger();
+
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
